@@ -1,9 +1,9 @@
 def call() {
 pipeline {
     agent any
-    environment {
-        DOCKER_CREDS = credentials('docker-credentials')
-        }
+    // environment {
+    //     DOCKER_CREDS = credentials('docker-credentials')
+    //     }
         stages {
             stage('Build') {
                 agent {
@@ -23,21 +23,21 @@ pipeline {
                         junit 'build/test-results/test/TEST-*.xml'
                     }
             }
-            stage('SonarQube') {
-                steps {
-                    script{
-                        def scannerHome = tool 'scanner-default'
-                        withSonarQubeEnv('sonar-server') {
-                            sh "${scannerHome}/bin/sonar-scanner \
-                            -Dsonar.projectKey=labgradle01 \
-                            -Dsonar.projectName=labgradle01 \
-                            -Dsonar.sources=src/main/kotlin \
-                            -Dsonar.java.binaries=build/classes \
-                            -Dsonar.tests=src/test/kotlin"
-                        }
-                    }
-                }
-            }
+            // stage('SonarQube') {
+            //     steps {
+            //         script{
+            //             def scannerHome = tool 'scanner-default'
+            //             withSonarQubeEnv('sonar-server') {
+            //                 sh "${scannerHome}/bin/sonar-scanner \
+            //                 -Dsonar.projectKey=labgradle01 \
+            //                 -Dsonar.projectName=labgradle01 \
+            //                 -Dsonar.sources=src/main/kotlin \
+            //                 -Dsonar.java.binaries=build/classes \
+            //                 -Dsonar.tests=src/test/kotlin"
+            //             }
+            //         }
+            //     }
+            // }
             stage('Build Image') {
                 steps {
                     copyArtifacts filter: 'build/libs/labgradle-*-SNAPSHOT.jar',
@@ -51,35 +51,35 @@ pipeline {
                     sh 'docker-compose build'
                 }
             }
-            stage('Publish Image') {
-                steps {
-                    script {
-                        sh 'docker login -u ${DOCKER_CREDS_USR} -p ${DOCKER_CREDS_PSW}'
-                        sh 'docker tag msmicroservice ${DOCKER_CREDS_USR}/msmicroservice:$BUILD_NUMBER'
-                        sh 'docker push ${DOCKER_CREDS_USR}/msmicroservice:$BUILD_NUMBER'
-                        sh 'docker logout'
-                    }
-                }
-            }
-            stage('Run Container') {
-                steps {
-                    script {
-                        sh 'docker login -u ${DOCKER_CREDS_USR} -p ${DOCKER_CREDS_PSW}'
-                        sh 'docker rm galaxyLab -f'
-                        sh 'docker run -d -p 8080:8080 --name galaxyLab ${DOCKER_CREDS_USR}/msmicroservice:$BUILD_NUMBER'
-                        //sh 'docker run -d -p 8080:8080 ${DOCKER_CREDS_USR}/msmicroservice:$BUILD_NUMBER'
-                        sh 'docker logout'
-                    }
-                }
-            }
-            stage('Test Run Container') {
-                    steps {
-                        script {
-                            sh 'docker ps'
-                            sh 'curl http://localhost:8080/customers'
-                        }
-                    }
-            }
+            // stage('Publish Image') {
+            //     steps {
+            //         script {
+            //             sh 'docker login -u ${DOCKER_CREDS_USR} -p ${DOCKER_CREDS_PSW}'
+            //             sh 'docker tag msmicroservice ${DOCKER_CREDS_USR}/msmicroservice:$BUILD_NUMBER'
+            //             sh 'docker push ${DOCKER_CREDS_USR}/msmicroservice:$BUILD_NUMBER'
+            //             sh 'docker logout'
+            //         }
+            //     }
+            // }
+            // stage('Run Container') {
+            //     steps {
+            //         script {
+            //             sh 'docker login -u ${DOCKER_CREDS_USR} -p ${DOCKER_CREDS_PSW}'
+            //             sh 'docker rm galaxyLab -f'
+            //             sh 'docker run -d -p 8080:8080 --name galaxyLab ${DOCKER_CREDS_USR}/msmicroservice:$BUILD_NUMBER'
+            //             //sh 'docker run -d -p 8080:8080 ${DOCKER_CREDS_USR}/msmicroservice:$BUILD_NUMBER'
+            //             sh 'docker logout'
+            //         }
+            //     }
+            // }
+            // stage('Test Run Container') {
+            //         steps {
+            //             script {
+            //                 sh 'docker ps'
+            //                 sh 'curl http://localhost:8080/customers'
+            //             }
+            //         }
+            // }
         }
     }
 }
